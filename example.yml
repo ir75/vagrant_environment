@@ -33,6 +33,10 @@
       shell: 'head -2 /vagrant/inventory | tail -n 2 >> /etc/ansible/hosts'
       when: inventory_hostname in groups['controllers']
 
+    - name: Fixing ssh config
+      shell: 'printf "Host 172.*\n\tStrictHostKeyChecking no\n" > /home/vagrant/.ssh/config'
+      when: inventory_hostname in groups['controllers']
+
     - name: install mc
       yum: name=mc state=present
 
