@@ -4,18 +4,23 @@
 - name: test
   hosts: all
   sudo: true
-  
+
   tasks:
-        
+
+    - name: Install libselinux-python
+      yum: name=libselinux-python state=present
+
+    - name: Selinux disable
+      selinux: state=disabled
 
     - name: stat key1
       stat: path=/vagrant/.vagrant/machines/node1/virtualbox/private_key
       register: key1_stat
-      
+
     - name: stat key2
       stat: path=/vagrant/.vagrant/machines/node2/virtualbox/private_key
       register: key2_stat
-    
+
     - name: copy key node 1
       copy: src=/vagrant/.vagrant/machines/node1/virtualbox/private_key dest=/home/vagrant/node1/ owner=vagrant group=vagrant mode=600
       when: (key1_stat.stat.exists and inventory_hostname in groups['controllers'])
@@ -23,23 +28,17 @@
     - name: copy key node 2
       copy: src=/vagrant/.vagrant/machines/node2/virtualbox/private_key dest=/home/vagrant/node2/ owner=vagrant group=vagrant mode=600
       when: (key2_stat.stat.exists and inventory_hostname in groups['controllers'])
-      
+
     - name: add node1 into local ansible inventory
       shell: 'head -2 /vagrant/inventory | tail -n 2 >> /etc/ansible/hosts'
       when: inventory_hostname in groups['controllers']
-    
+
     - name: install mc
       yum: name=mc state=present
-      
-    - name: Install libselinux-python
-      yum: name=libselinux-python state=present
 
-    - name: Selinux disable
-      selinux: state=disabled
-      
     - name: set host names
       hostname: name={{ inventory_hostname }}
-      
+
 #    - name: Restart server
 #      shell: reboot
 #      when: inventory_hostname in groups['nodes']
